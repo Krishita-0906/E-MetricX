@@ -1,0 +1,27 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="content-section">
+  <div class="media">
+    <div class="media-body">
+      <h2 class="account-heading">Account Settings</h2>
+      <p class="text-secondary">Manage your profile and session</p>
+    </div>
+  </div>
+  <hr>
+  
+  <div class="form-group">
+      <label class="font-weight-bold">Username:</label>
+      <p>{{ current_user.username }}</p>
+  </div>
+  <div class="form-group">
+      <label class="font-weight-bold">Email:</label>
+      <p>{{ current_user.email }}</p>
+  </div>
+
+  <hr>
+
+  <div class="form-group mt-4">
+      <a class="btn btn-danger" href="{{ url_for('logout') }}">Log Out</a>
+  </div>
+</div>
+{% endblock %}
