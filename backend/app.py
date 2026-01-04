@@ -65,22 +65,26 @@ SPECIES_RATES = {
     "mixed_forest": 5.5
 }
 
-def calculate_sink(area, age, p_type, state):
-    # 1. Base Factor
-    if p_type == "synthetic" or p_type not in SPECIES_RATES:
-        base_factor = STATE_DEFAULTS.get(state, 4.0) 
+def calculate_annual_sink(area_ha, age_years, plantation_type, state):
+    if plantation_type == "synthetic" or plantation_type not in SPECIES_RATES:
+        base = STATE_DEFAULTS.get(state, 4.0)
     else:
-        base_factor = SPECIES_RATES.get(p_type, 4.0)
-    
-    # 2. Age Adjustment 
-    # Note: Operational mines (Registry) will always have Age=10, so factor=1.0
-    age_factor = 1.0
-    if age < 3: age_factor = 0.3
-    elif age < 7: age_factor = 0.7
-    
-    # 3. Calculation
-    sequestration = area * base_factor * age_factor
-    return round(sequestration, 2), base_factor
+        base = SPECIES_RATES[plantation_type]
+
+    # Age factor (no over-crediting)
+    if age_years < 3:
+        age_factor = 0.3
+    elif age_years < 7:
+        age_factor = 0.7
+    else:
+        age_factor = 1.0
+
+    annual_sink = area_ha * base * age_factor
+
+    # Hard scientific cap (prevents fake neutrality)
+    max_sink = area_ha * 10
+    return round(min(annual_sink, max_sink), 2)
+
 
 # --- HELPERS ---
 
