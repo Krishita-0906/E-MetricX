@@ -19,6 +19,7 @@ from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, Tabl
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib import colors
 from reportlab.lib.units import inch
+import re
 
 # --- APP CONFIGURATION ---
 app = Flask(__name__)
@@ -50,7 +51,7 @@ def load_mine_registry():
 
 MINE_REGISTRY = load_mine_registry()
 
-# --- SINK CALCULATION CONSTANTS ---
+'''# --- SINK CALCULATION CONSTANTS ---
 STATE_DEFAULTS = {
     "Jharkhand": 4.5, "Odisha": 5.2, "Chhattisgarh": 6.8, 
     "Madhya Pradesh": 4.0, "Telangana": 3.5, "Maharashtra": 4.2,
@@ -81,6 +82,45 @@ def calculate_sink(area, age, p_type, state):
     # 3. Calculation
     sequestration = area * base_factor * age_factor
     return round(sequestration, 2), base_factor
+'''
+
+# --- REVISED PRACTICAL SINK CALCULATION ---
+
+# Realistic Annual Sequestration Rates (tCO2 per hectare per year)
+# These are adjusted down to be more representative of reclaimed mine land
+SPECIES_RATES = {
+    "dense_forest": 5.0,     # High end for mature, thick canopy
+    "mixed_forest": 3.2,     # Standard for diverse plantation
+    "young_plantation": 1.2, # New saplings don't absorb much
+    "scrub_land": 0.8,       # Common on mine fringes
+    "bamboo": 6.0            # Fast growing, but niche
+}
+
+def calculate_sink(area, age, p_type, state):
+    # 1. Get the base rate from species or state default
+    base_rate = SPECIES_RATES.get(p_type, 2.5) # Default to 2.5 if not found
+    
+    # 2. Add a "Mine Land Condition" Factor (Practicality Fix)
+    # Reclaimed mine soil is poorer than natural forest soil. 
+    # We apply a 0.6x multiplier because the land isn't "pristine."
+    condition_multiplier = 0.6 
+    
+    # 3. Age Adjustment (Non-linear)
+    # Trees under 5 years old sequester very little carbon.
+    if age < 5:
+        age_factor = 0.2
+    elif age < 15:
+        age_factor = 0.7
+    else:
+        age_factor = 1.0
+        
+    # 4. Final Calculation
+    # Sink = Area (Ha) * Rate * Condition * Age
+    annual_sink = area * base_rate * condition_multiplier * age_factor
+    
+    # This will result in a much smaller, more realistic sink value.
+    return round(annual_sink, 2), round(base_rate * condition_multiplier, 2)
+
 
 # --- HELPERS ---
 
@@ -305,8 +345,6 @@ def delete_dataset(id):
     except Exception as e:
         return jsonify({'message': str(e)}), 500
 
-# --- ANALYSIS ROUTES ---
-
 @app.route("/api/analyze/<int:dataset_id>")
 def analyze_dataset(dataset_id):
     user = get_user_from_header()
@@ -520,11 +558,33 @@ def analyze_all_datasets():
     except Exception as e:
         print(f"Error in analyze-all: {e}") 
         return jsonify({'message': f'Error aggregating data: {str(e)}'}), 500
+@app.route("/api/list-datasets")
+def list_user_datasets():
+    user = get_user_from_header()
+    if not user: return jsonify({'message': 'Unauthorized'}), 401
+    
+    datasets = UserDataset.query.filter_by(user_id=user.id).order_by(UserDataset.date_uploaded.desc()).all()
+    
+    output = []
+    import re
+    for ds in datasets:
+        # Extract year from filename (e.g., "data_2023.csv") or use upload date
+        year_match = re.search(r'20\d{2}', ds.filename)
+        year_label = year_match.group(0) if year_match else ds.date_uploaded.strftime('%Y')
+        
+        output.append({
+            "id": ds.id,
+            "filename": ds.filename,
+            "year": year_label
+        })
+    
+    return jsonify(output), 200
 
 # --- ADVANCED REPORT GENERATION (WITH CHARTS) ---
 def create_chart_image(data_dict, title, chart_type='pie'):
     img_buffer = BytesIO()
     plt.figure(figsize=(4, 3))
+
     
     if chart_type == 'pie':
         labels = [k for k, v in data_dict.items() if v > 0]

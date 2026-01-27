@@ -2,73 +2,63 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import CarbonDashboard from '../CarbonDashboard'; 
 
-const API_BASE_URL = "http://127.0.0.1:5000/api";
-
 const Dashboard = () => {
     const userId = localStorage.getItem('userId');
-    const [profile, setProfile] = useState({});
     const [analysisData, setAnalysisData] = useState(null);
+    const [profile, setProfile] = useState({});
 
     useEffect(() => {
         const fetchData = async () => {
             try {
+                const config = { headers: { 'X-User-ID': userId } };
                 // 1. Get Profile
-                const pRes = await axios.get(`${API_BASE_URL}/get-profile`, { headers: { 'X-User-ID': userId } });
+                const pRes = await axios.get(`http://127.0.0.1:5000/api/get-profile`, config);
                 setProfile(pRes.data);
 
-                // 2. NEW: Get AGGREGATED Analysis (All Files)
-                const dRes = await axios.get(`${API_BASE_URL}/analyze-all`, { headers: { 'X-User-ID': userId } });
+                // 2. Get Cumulative Analysis for ALL datasets
+                const dRes = await axios.get(`http://127.0.0.1:5000/api/analyze-all`, config);
                 setAnalysisData(dRes.data);
                 
-            } catch (error) { console.error(error); }
+            } catch (err) { 
+                console.error("Dashboard Error:", err); 
+            }
         };
         fetchData();
     }, [userId]);
 
+    if (!analysisData) return <div style={{padding: '50px', textAlign: 'center'}}>Calculating Cumulative Mine Data...</div>;
+
     return (
-    <div style={{ padding: '30px', maxWidth: '1200px', margin: '0 auto' }}>
-            {/* WELCOME HEADER */}
+        <div style={{ padding: '30px', backgroundColor: '#f4f7f6', minHeight: '100vh' }}>
             <div style={{ marginBottom: '30px' }}>
-                <h1 style={{ margin: 0, color: '#1b5e20' }}>Overview</h1>
+                <h2 style={{ color: '#1b5e20', margin: 0 }}>Mine Overview: {profile.mine_name}</h2>
                 <p style={{ color: '#666' }}>
-                    Welcome back, <strong>{profile.mine_name || 'User'}</strong>. 
-                    Viewing cumulative data across <strong>{analysisData?.metrics?.file_count || 0}</strong> reports.
+                    Viewing cumulative data from <b>{analysisData.metrics.file_count}</b> uploaded reports.
                 </p>
             </div>
+            
+            {/* KPI GRID */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px', marginBottom: '30px' }}>
+                <StatCard title="Cumulative Emissions" value={analysisData.summary.total_emissions} unit="tCO2e" color="#e53935" />
+                <StatCard title="Total Carbon Sink" value={analysisData.summary.total_sink} unit="tCO2e" color="#43a047" />
+                <StatCard title="Net Gap" value={analysisData.summary.net_gap} unit="tCO2e" color="#fb8c00" />
+                <StatCard title="Avg. Intensity" value={analysisData.metrics.per_tonne_coal} unit="t/tonne" color="#1e88e5" />
+            </div>
 
-            {/* KEY STATS CARDS */}
-            {analysisData ? (
-                <>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px', marginBottom: '30px' }}>
-                        {/* Note: Labels changed to indicate "Lifetime" or "Total" */}
-                        <Card title="Emissions" value={analysisData.summary.total_emissions} unit="tCO₂e" color="#c62828" />
-                        <Card title="Sink" value={analysisData.summary.total_sink} unit="tCO₂e" color="#2e7d32" />
-                        <Card title="Cumulative Net Gap" value={analysisData.summary.net_gap} unit="tCO₂e" color={analysisData.summary.net_gap > 0 ? "#f57c00" : "#00acc1"} />
-                        <Card title="Avg. Intensity" value={analysisData.metrics.per_tonne_coal} unit="tCO₂e/t" color="#546e7a" />
-                    </div>
-                    
-                    {/* CHARTS */}
-                    <div style={{ background: 'white', padding: '20px', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
-                        {/* Reuse the existing chart component, it adapts to the data format automatically */}
-                        <CarbonDashboard analysisData={analysisData} />
-                    </div>
-                </>
-            ) : (
-                <div style={{ padding: '40px', textAlign: 'center', background: 'white', borderRadius: '12px' }}>
-                    <h3>No Data Available</h3>
-                    <p>Go to the <strong>Data & Uploads</strong> tab to add your first audit file.</p>
-                </div>
-            )}
+            <div style={{ background: 'white', padding: '30px', borderRadius: '15px', boxShadow: '0 10px 30px rgba(0,0,0,0.05)' }}>
+                <CarbonDashboard analysisData={analysisData} />
+            </div>
         </div>
     );
 };
 
-// Simple Internal Card Component
-const Card = ({ title, value, unit, color }) => (
-    <div style={{ background: 'white', padding: '25px', borderRadius: '12px', borderLeft: `5px solid ${color}`, boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
-        <h4 style={{ margin: '0 0 10px 0', color: '#888', fontSize: '0.9rem', textTransform: 'uppercase' }}>{title}</h4>
-        <div style={{ fontSize: '1.8rem', fontWeight: 'bold', color: '#333' }}>{value}</div>
-        <div style={{ fontSize: '0.8rem', color: '#aaa' }}>{unit}</div>
+const StatCard = ({ title, value, unit, color }) => (
+    <div style={{ background: 'white', padding: '20px', borderRadius: '12px', borderBottom: `4px solid ${color}`, boxShadow: '0 4px 15px rgba(0,0,0,0.03)' }}>
+        <h4 style={{ margin: '0 0 10px 0', color: '#999', fontSize: '0.8rem', textTransform: 'uppercase' }}>{title}</h4>
+        <div style={{ fontSize: '1.8rem', fontWeight: 'bold', color: '#333' }}>
+            {value?.toLocaleString()} 
+            <span style={{ fontSize: '0.8rem', color: '#999', marginLeft: '5px' }}>{unit}</span>
+        </div>
     </div>
 );
 

@@ -10,8 +10,6 @@ const Sinks = () => {
     const [datasets, setDatasets] = useState([]);
     const [selectedId, setSelectedId] = useState('');
     const [data, setData] = useState(null);
-    
-    // SIMULATOR STATE
     const [addedArea, setAddedArea] = useState(0);
 
     // 1. Fetch File List
@@ -19,42 +17,49 @@ const Sinks = () => {
         axios.get(`${API_BASE_URL}/user-datasets`, { headers: { 'X-User-ID': userId } })
             .then(res => {
                 setDatasets(res.data);
-                if(res.data.length > 0) setSelectedId(res.data[0].dataset_id);
-            });
+                // Only set selected ID if data actually exists
+                if(res.data && res.data.length > 0) setSelectedId(res.data[0].dataset_id);
+            })
+            .catch(err => console.error("Error fetching datasets:", err));
     }, [userId]);
 
     // 2. Fetch Analysis
     useEffect(() => {
         if(!selectedId) return;
-        setAddedArea(0); // Reset simulator on new file
+        setAddedArea(0); 
         axios.get(`${API_BASE_URL}/analyze/${selectedId}`, { headers: { 'X-User-ID': userId } })
             .then(res => setData(res.data))
-            .catch(err => console.error(err));
+            .catch(err => console.error("Error analyzing dataset:", err));
     }, [selectedId, userId]);
 
-    if (!data) return <div style={{padding:'30px'}}>Loading sinks data...</div>;
-
+    // --- SAFETY CHECK (CRITICAL FIX) ---
+    // This stops the "area_ha" undefined crash
+    if (!data || !data.summary || !data.mine_profile) {
+        return <div style={{padding:'50px', textAlign: 'center'}}>Loading Sinks Analysis...</div>;
+    }
     // --- CALCULATIONS FOR SIMULATOR ---
-    const currentSink = data.summary.total_sink;
-    const currentArea = data.mine_profile.area_ha || 1; // Avoid divide by zero
-    const sinkFactor = currentSink / currentArea; // tCO2e per Hectare
+    // Using optional chaining (?.) so it never crashes
+    const currentSink = data.summary?.total_sink || 0;
+    const currentArea = data.mine_profile?.area_ha || 1; 
+    
+    // This is the factor the simulator uses to calculate future impact
+    const sinkFactor = currentSink / currentArea; 
     
     const simulatedExtraSink = addedArea * sinkFactor;
     const newTotalSink = currentSink + simulatedExtraSink;
-    const newGap = data.summary.total_emissions - newTotalSink;
-    const percentClosed = Math.min(100, (newTotalSink / data.summary.total_emissions) * 100);
+    const emissions = data.summary?.total_emissions || 0;
+    const newGap = emissions - newTotalSink;
+    const percentClosed = Math.min(100, (newTotalSink / (emissions || 1)) * 100);
 
     // --- CHART DATA ---
     const chartData = [
-        { name: 'Total Emissions', val: data.summary.total_emissions, fill: '#ef5350' },
+        { name: 'Total Emissions', val: emissions, fill: '#ef5350' },
         { name: 'Current Sink', val: currentSink, fill: '#66bb6a' },
-        { name: 'New Sink (Simulated)', val: newTotalSink, fill: '#2e7d32' }, // Darker Green
+        { name: 'New Sink (Simulated)', val: newTotalSink, fill: '#2e7d32' },
     ];
 
     return (
         <div style={{ padding: '30px', maxWidth: '1200px', margin: '0 auto' }}>
-            
-            {/* HEADER */}
             <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'30px' }}>
                 <div>
                     <h2 style={{ margin: 0, color: '#1b5e20' }}>🌱 Sinks & Gap Analysis</h2>
@@ -65,22 +70,23 @@ const Sinks = () => {
                     value={selectedId}
                     onChange={(e) => setSelectedId(e.target.value)}
                 >
-                    {datasets.map(d => <option key={d.dataset_id} value={d.dataset_id}>{d.filename}</option>)}
+                    {datasets.map(d => (
+                        <option key={d.dataset_id} value={d.dataset_id}>{d.filename}</option>
+                    ))}
                 </select>
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '30px' }}>
-                
-                {/* LEFT: VISUALIZATION */}
                 <div style={{ background: 'white', padding: '25px', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
                     <h4 style={{ textAlign: 'center', marginBottom: '20px' }}>Net Zero Bridge</h4>
+                    
                     <ResponsiveContainer width="100%" height={350}>
                         <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                             <CartesianGrid strokeDasharray="3 3" vertical={false} />
                             <XAxis dataKey="name" tick={{fontSize: 12}} />
                             <YAxis />
                             <Tooltip cursor={{fill: 'transparent'}} formatter={(val) => val.toFixed(1) + " tCO₂e"} />
-                            <ReferenceLine y={data.summary.total_emissions} label="Net Zero Target" stroke="red" strokeDasharray="3 3" />
+                            <ReferenceLine y={emissions} label="Net Zero Target" stroke="red" strokeDasharray="3 3" />
                             <Bar dataKey="val" barSize={60} radius={[5, 5, 0, 0]}>
                                 {chartData.map((entry, index) => (
                                     <Cell key={`cell-${index}`} fill={entry.fill} />
@@ -93,14 +99,11 @@ const Sinks = () => {
                         <strong style={{ fontSize: '1.2rem', color: newGap <= 0 ? 'green' : '#c62828' }}>
                             {newGap <= 0 ? "🎉 Net Zero Achieved!" : `Gap: ${newGap.toFixed(1)} tCO₂e`}
                         </strong>
-                        {newGap > 0 && <div style={{ fontSize: '0.9rem', color: '#555' }}>You are offseting {percentClosed.toFixed(1)}% of your emissions.</div>}
+                        {newGap > 0 && <div style={{ fontSize: '0.9rem', color: '#555' }}>You are offsetting {percentClosed.toFixed(1)}% of your emissions.</div>}
                     </div>
                 </div>
 
-                {/* RIGHT: SIMULATOR */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                    
-                    {/* STAT CARDS */}
                     <div style={cardStyle}>
                         <div style={{ display:'flex', gap:'10px', alignItems:'center', color:'#555', marginBottom:'5px' }}>
                             <Target size={18} /> Current Green Cover
@@ -115,12 +118,8 @@ const Sinks = () => {
                         <div style={{ fontSize: '1.8rem', fontWeight: 'bold', color: '#333' }}>{sinkFactor.toFixed(1)} <span style={{fontSize:'1rem'}}>t/Ha</span></div>
                     </div>
 
-                    {/* SLIDER CONTROL */}
                     <div style={{ background: '#e0f2f1', padding: '25px', borderRadius: '12px', border: '1px solid #b2dfdb' }}>
                         <h4 style={{ margin: '0 0 15px 0', color: '#00695c' }}>🧪 Plantation Simulator</h4>
-                        <p style={{ fontSize: '0.9rem', color: '#555', marginBottom: '20px' }}>
-                            What if we expanded our green cover?
-                        </p>
                         
                         <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '10px' }}>
                             Add +{addedArea} Hectares
@@ -144,7 +143,6 @@ const Sinks = () => {
                             </div>
                         </div>
                     </div>
-
                 </div>
             </div>
         </div>
