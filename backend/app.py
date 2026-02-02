@@ -58,6 +58,10 @@ MINE_REGISTRY = load_mine_registry()
 
 
 # --- REVISED PRACTICAL SINK CALCULATION ---
+STATE_DEFAULTS = {
+    "Jharkhand": 4.5, "Odisha": 5.2, "Chhattisgarh": 6.8, 
+    "Madhya Pradesh": 4.0, "Telangana": 3.5, "Maharashtra": 4.2,
+    "West Bengal": 4.1, "Uttar Pradesh": 3.8, "Tamil Nadu": 5.0}
 
 # Realistic Annual Sequestration Rates (tCO2 per hectare per year)
 # These are adjusted down to be more representative of reclaimed mine land
@@ -68,6 +72,7 @@ SPECIES_RATES = {
     "scrub_land": 0.8,       # Common on mine fringes
     "bamboo": 6.0            # Fast growing, but niche
 }
+
 
 def calculate_sink(area, age, p_type, state):
     # 1. Get the base rate from species or state default
@@ -93,6 +98,26 @@ def calculate_sink(area, age, p_type, state):
     
     # This will result in a much smaller, more realistic sink value.
     return round(annual_sink, 2), round(base_rate * condition_multiplier, 2)
+
+def calculate_annual_sink(area_ha, age_years, plantation_type, state):
+    if plantation_type == "synthetic" or plantation_type not in SPECIES_RATES:
+        base = STATE_DEFAULTS.get(state, 4.0)
+    else:
+        base = SPECIES_RATES[plantation_type]
+
+    # Age factor (no over-crediting)
+    if age_years < 3:
+        age_factor = 0.3
+    elif age_years < 7:
+        age_factor = 0.7
+    else:
+        age_factor = 1.0
+
+    annual_sink = area_ha * base * age_factor
+
+    # Hard scientific cap (prevents fake neutrality)
+    max_sink = area_ha * 10
+    return round(min(annual_sink, max_sink), 2)
 
 
 # --- HELPERS ---
