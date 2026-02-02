@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, UploadCloud, BarChart3, Sprout, ArrowLeftRight, TrendingUp, FileText, UserCircle, LogOut } from 'lucide-react';
+import { LayoutDashboard, UploadCloud, BarChart3, Sprout, ArrowLeftRight, TrendingUp, FileText, UserCircle, LogOut, Brain } from 'lucide-react';
 
 const Navbar = ({ onLogout }) => {
   return (
@@ -16,6 +16,7 @@ const Navbar = ({ onLogout }) => {
       <NavItem to="/sinks" icon={<Sprout size={20} />} label="Sinks & Gap" />
       <NavItem to="/compare" icon={<ArrowLeftRight size={20} />} label="Compare Years" />
       <NavItem to="/pathways" icon={<TrendingUp size={20} />} label="Pathways" />
+      <NavItem to="/ai-analytics" icon={<Brain size={20} />} label="AI Analytics" />
       <NavItem to="/reports" icon={<FileText size={20} />} label="Reports" />
       <NavItem to="/profile" icon={<UserCircle size={20} />} label="Account" />
       </div>

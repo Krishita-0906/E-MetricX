@@ -20,6 +20,11 @@ from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib import colors
 from reportlab.lib.units import inch
 import re
+from flask import Flask, request, jsonify
+from analytics import predict_neutrality_year 
+from advisor import generate_ai_pathways
+from detectors import detect_emission_anomalies
+from classifier import classify_mine_risk
 
 # --- APP CONFIGURATION ---
 app = Flask(__name__)
@@ -51,38 +56,6 @@ def load_mine_registry():
 
 MINE_REGISTRY = load_mine_registry()
 
-'''# --- SINK CALCULATION CONSTANTS ---
-STATE_DEFAULTS = {
-    "Jharkhand": 4.5, "Odisha": 5.2, "Chhattisgarh": 6.8, 
-    "Madhya Pradesh": 4.0, "Telangana": 3.5, "Maharashtra": 4.2,
-    "West Bengal": 4.1, "Uttar Pradesh": 3.8, "Tamil Nadu": 5.0
-}
-SPECIES_RATES = {
-    "synthetic": "AUTO", 
-    "dense_forest": 8.0, 
-    "scrub_land": 1.5,
-    "bamboo": 12.0,      
-    "young_plantation": 3.0,
-    "mixed_forest": 5.5
-}
-
-def calculate_sink(area, age, p_type, state):
-    # 1. Base Factor
-    if p_type == "synthetic" or p_type not in SPECIES_RATES:
-        base_factor = STATE_DEFAULTS.get(state, 4.0) 
-    else:
-        base_factor = SPECIES_RATES.get(p_type, 4.0)
-    
-    # 2. Age Adjustment 
-    # Note: Operational mines (Registry) will always have Age=10, so factor=1.0
-    age_factor = 1.0
-    if age < 3: age_factor = 0.3
-    elif age < 7: age_factor = 0.7
-    
-    # 3. Calculation
-    sequestration = area * base_factor * age_factor
-    return round(sequestration, 2), base_factor
-'''
 
 # --- REVISED PRACTICAL SINK CALCULATION ---
 
@@ -530,7 +503,7 @@ def analyze_all_datasets():
             })
             
             if prod > 0:
-                total_prod += prod
+                total_prod += prod 
                 weighted_intensity_sum += (total / prod) * prod
 
         annual_sink, _ = calculate_sink(user.plantation_area, user.plantation_age, user.plantation_type, user.state)
@@ -551,13 +524,14 @@ def analyze_all_datasets():
             "metrics": {
                 "per_tonne_coal": float(round(avg_intensity, 5)),
                 "file_count": len(datasets)
-            },
-            "monthly_data": yearly_trends 
+            },  
+            "monthly_data": yearly_trends
         }), 200
         
     except Exception as e:
         print(f"Error in analyze-all: {e}") 
         return jsonify({'message': f'Error aggregating data: {str(e)}'}), 500
+    
 @app.route("/api/list-datasets")
 def list_user_datasets():
     user = get_user_from_header()
@@ -731,6 +705,49 @@ def download_report(dataset_id):
     except Exception as e:
         print(f"PDF Gen Error: {e}")
         return jsonify({'message': str(e)}), 500
+    
+@app.route('/api/predict-neutrality', methods=['POST'])
+def get_prediction():
+    data = request.json
+    # Pass data to our Phase 1 function
+    result = predict_neutrality_year(
+        data['years'], 
+        data['emissions'], 
+        data['sinks']
+    )
+    return jsonify(result)
+
+@app.route('/api/ai-recommendations', methods=['POST'])
+def get_ai_recommendations():
+    data = request.json
+    # Logic: Identify current breakdown and gap
+    pathways = generate_ai_pathways(
+        data['breakdown'], 
+        data['net_gap'], 
+        data['target_year']
+    )
+    return jsonify({"ai_pathways": pathways})
+
+@app.route('/api/detect-anomalies', methods=['POST'])
+def get_anomalies():
+    data = request.json
+    anomalies = detect_emission_anomalies(
+        data['years'], 
+        data['diesel'], 
+        data['electricity']
+    )
+    return jsonify({"anomalies": anomalies})
+
+@app.route('/api/classify-risk', methods=['POST'])
+def get_risk_rating():
+    data = request.json
+    # Logic: Classify based on recent metrics
+    risk = classify_mine_risk(
+        data['intensity'], 
+        data['sink_ratio'], 
+        data['diesel_dependency']
+    )
+    return jsonify(risk)
 
 if __name__ == '__main__':
     with app.app_context():

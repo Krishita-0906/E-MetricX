@@ -16,6 +16,7 @@ import Compare from './app_pages/Compare';
 import Emissions from './app_pages/Emissions';
 import Sinks from './app_pages/Sinks';
 import Pathways from './app_pages/Pathways';
+import AI_Analytics from './app_pages/AI_Analytics';
 import Reports from './app_pages/Reports';
 import Account from './app_pages/Account';
 
@@ -58,6 +59,7 @@ const App = () => {
                   <Route path="/emissions" element={<Emissions />} />
                   <Route path="/sinks" element={<Sinks />} />
                   <Route path="/compare" element={<Compare />} />
+                  <Route path="/ai-analytics" element={<AI_Analytics />} />
                   <Route path="/pathways" element={<Pathways />} />
                   <Route path="/reports" element={<Reports />} />
                   <Route path="/profile" element={<Account />} />
