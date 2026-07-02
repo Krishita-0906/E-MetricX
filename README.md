@@ -109,7 +109,73 @@ Emission Engine   Carbon Sink     AI Analytics
                       ▼
         Dashboard • Reports • Analytics
 ```
+---
 
+# 📸 Application Screenshots
+
+## 🏠 Landing Page
+
+![Landing Page](screenshots/landing-page.jpeg)
+
+---
+
+## 📊 Dashboard
+
+![Dashboard](screenshots/dashboard.jpeg)
+
+---
+
+## 📂 Data Hub
+
+![Data Hub](screenshots/data-hub.jpeg)
+
+---
+
+## 📈 Carbon Emissions Analysis
+
+![Emissions](screenshots/emissions.jpeg)
+
+---
+
+## 🌳 Carbon Sink & Neutrality Gap
+
+![Sinks and Gap](screenshots/sinks-gap.jpeg)
+
+---
+
+## 📅 Year Comparison
+
+![Compare Years](screenshots/compare-years.jpeg)
+
+---
+
+## 🤖 AI Intelligence
+
+![AI Intelligence](screenshots/ai-intelligence.jpeg)
+
+---
+
+## 🛣️ Net Zero Pathways
+
+![Pathways](screenshots/pathways.jpeg)
+
+---
+
+## 📄 Reports
+
+![Reports](screenshots/reports.jpeg)
+
+---
+
+## 👤 Account Settings
+
+![Account](screenshots/account.jpeg)
+
+---
+
+## 📝 Audit Report
+
+![Audit Report](screenshots/audit-report.jpeg)
 ## 📂 Project Structure
 
 ```
