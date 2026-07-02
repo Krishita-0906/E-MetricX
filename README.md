@@ -90,24 +90,12 @@ E-MetricX provides a centralized platform that enables organizations to:
 
 ---
 
+```md
 ## 🏗️ System Architecture
 
-```text
-               React Frontend
-                      │
-                      ▼
-              Flask REST API
-                      │
-      ┌───────────────┼───────────────┐
-      ▼               ▼               ▼
-Emission Engine   Carbon Sink     AI Analytics
-                  Estimation
-      └───────────────┼───────────────┘
-                      ▼
-                SQLite Database
-                      │
-                      ▼
-        Dashboard • Reports • Analytics
+<p align="center">
+  <img src="assets/architecture.png" alt="E-MetricX Architecture" width="100%">
+</p>
 ```
 ---
 
