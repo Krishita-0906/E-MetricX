@@ -90,14 +90,14 @@ E-MetricX provides a centralized platform that enables organizations to:
 
 ---
 
-```md
+
 ## 🏗️ System Architecture
 
 <p align="center">
   <img src="assets/architecture.png" alt="E-MetricX Architecture" width="100%">
 </p>
-```
----
+
+
 
 # 📸 Application Screenshots
 
