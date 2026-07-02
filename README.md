@@ -1,16 +1,156 @@
-# E-MetricX 🌱
+# 🌱 E-MetricX
 
-A carbon accounting and net-zero simulation platform for Indian coal mines.
+> **AI-powered carbon accounting and net-zero simulation platform for Indian coal mines.**
 
-## Stack
-- Flask (Backend)
-- React (Frontend)
+![Status](https://img.shields.io/badge/Status-Completed-success)
+![Python](https://img.shields.io/badge/Python-3.x-blue)
+![Flask](https://img.shields.io/badge/Backend-Flask-black)
+![React](https://img.shields.io/badge/Frontend-React-61DAFB)
+![SQLite](https://img.shields.io/badge/Database-SQLite-003B57)
+
+---
+
+## 📖 Overview
+
+E-MetricX is a full-stack web application developed to help coal mining industries monitor, analyze, and reduce their carbon footprint.
+
+The platform automates carbon accounting by processing operational mine data, estimating greenhouse gas emissions, calculating carbon sinks, identifying neutrality gaps, and providing AI-assisted insights to support sustainable decision-making.
+
+Unlike conventional spreadsheet-based reporting systems, E-MetricX integrates data management, analytics, visualization, forecasting, and reporting into a single platform.
+
+---
+
+## 🌍 Problem Statement
+
+Coal mining operations generate significant greenhouse gas emissions through:
+
+- Diesel-powered heavy equipment
+- Electricity consumption
+- Methane emissions
+- Blasting operations
+- Material transportation
+
+Many organizations still rely on fragmented spreadsheets and manual reporting, making carbon accounting slow, error-prone, and difficult to analyze.
+
+---
+
+## 💡 Solution
+
+E-MetricX provides a centralized platform that enables organizations to:
+
+- Upload operational datasets
+- Calculate carbon emissions
+- Estimate carbon sinks
+- Measure net carbon gap
+- Compare multi-year performance
+- Forecast future trends
+- Support net-zero planning
+- Generate analytical reports
+
+---
+
+## ✨ Key Features
+
+- Secure user authentication
+- Mine profile management
+- Dataset upload & validation
+- Scope 1 & Scope 2 emission calculation
+- Carbon sink estimation
+- Net carbon gap analysis
+- Multi-year comparison dashboard
+- AI-assisted emission forecasting
+- Interactive charts & analytics
+- Report generation
+
+---
+
+## 🛠️ Tech Stack
+
+### Frontend
+
+- React
+- HTML
+- CSS
+- JavaScript
+
+### Backend
+
+- Flask
+- Python
+
+### Database
+
 - SQLite
 
-## Features
-- Emissions (Scope 1 & 2)
-- Carbon sinks & gap analysis
-- Net-zero pathways
-- Multi-year comparison
+### Libraries
 
-Final Year Group Project
+- Pandas
+- NumPy
+- Matplotlib
+
+---
+
+## 🏗️ System Architecture
+
+```text
+               React Frontend
+                      │
+                      ▼
+              Flask REST API
+                      │
+      ┌───────────────┼───────────────┐
+      ▼               ▼               ▼
+Emission Engine   Carbon Sink     AI Analytics
+                  Estimation
+      └───────────────┼───────────────┘
+                      ▼
+                SQLite Database
+                      │
+                      ▼
+        Dashboard • Reports • Analytics
+```
+
+## 📂 Project Structure
+
+```
+E-MetricX
+│
+├── backend
+├── frontend
+├── README.md
+├── package.json
+└── .gitignore
+```
+
+---
+
+## 🚀 Future Enhancements
+
+- Real-time IoT integration
+- Satellite vegetation analysis
+- Advanced machine learning models
+- Cloud deployment
+- Multi-mine management
+- Automated ESG reporting
+
+---
+
+## 👩‍💻 Team Project
+
+Developed as a Final Year Engineering Project.
+
+### My Contributions
+
+- Backend development
+- API integration
+- Carbon emission analytics
+- Dashboard implementation
+- Testing and debugging
+- Documentation
+
+---
+
+## 📜 License
+
+This project is intended for academic and educational purposes.
+
