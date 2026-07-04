@@ -208,3 +208,13 @@ Developed as a Final Year Engineering Project.
 
 This project is intended for academic and educational purposes.
 
+---
+
+## © Copyright
+
+© 2026 Krishita K K. All Rights Reserved.
+
+This repository is shared solely for portfolio and evaluation purposes.
+
+No part of this source code may be copied, modified, redistributed, or used in other projects without prior written permission from the author.
+
